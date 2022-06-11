@@ -1,20 +1,19 @@
-rel_pth = "C:\\Users\\Leong Teng Man\\Desktop\\dsp2"
+rel_pth = "C:\\Users\\Leong Teng Man\\Documents\\GitHub\\DataScienceProg2-project"
 setwd(rel_pth)
-maize_df = read.csv("maize-production.csv")
+cereals_df = read.csv("cereals-production.csv")
 
 names(maize_df)
 dev.off()
 par(mfrow=c(4,1))
 
-plot(maize_df$Year, maize_df$Yield, type="l")
-plot(maize_df$Year, maize_df$Production, type="l")
-plot(maize_df$Year, maize_df$Fertilizer.consumption, type="l")
-plot(maize_df$Year, maize_df$Annual.CO2.emissions, type="l")
+plot(cereals_df$Year, cereals_df$Yield, type="l")
+plot(cereals_df$Year, cereals_df$Production, type="l")
+plot(cereals_df$Year, cereals_df$Fertilizer.consumption, type="l")
+plot(cereals_df$Year, cereals_df$Annual.CO2.emissions, type="l")
 
 
-
-maize_df = maize_df[,5:ncol(maize_df)]
-maize_df
+cereals_df = cereals_df[,5:ncol(cereals_df)]
+cereals_df
 
 
 
@@ -35,11 +34,11 @@ test_graph = function(data, formula){
 }
 
 # correlation matrix
-cor(maize_df)
-pairs(Yield ~., data = maize_df)
+cor(cereals_df)
+pairs(Yield ~., data = cereals_df)
 
 
-dat = subset(maize_df, select = -c(Max.Temperature,Min.Temperature))
+dat = subset(cereals_df, select = -c(Max.Temperature,Min.Temperature))
 crop_lm = test_graph(Yield ~., data = dat)
 
 library(MASS)
