@@ -4,18 +4,25 @@ cereals_df = read.csv("cereals-production.csv")
 
 names(maize_df)
 dev.off()
-par(mfrow=c(4,1))
+par(mfrow=c(1,3))
+summary(cereals_df[,4:ncol(cereals_df)])
+boxplot(cereals_df$Yield)
+boxplot(cereals_df$Fertilizer.consumption)
+boxplot(cereals_df$Annual.CO2.emissions)
+boxplot(cereals_df$Mean.Temperature)
+boxplot(cereals_df$Temperature.Difference)
 
+dev.off()
+par(mfrow=c(2,1))
 plot(cereals_df$Year, cereals_df$Yield, type="l")
-plot(cereals_df$Year, cereals_df$Production, type="l")
 plot(cereals_df$Year, cereals_df$Fertilizer.consumption, type="l")
 plot(cereals_df$Year, cereals_df$Annual.CO2.emissions, type="l")
+plot(cereals_df$Year, cereals_df$Mean.Temperature, type="l")
+plot(cereals_df$Year, cereals_df$Temperature.Difference, type="l")
 
 
 cereals_df = cereals_df[,4:ncol(cereals_df)]
 cereals_df
-
-
 
 library(lmtest)
 test_graph = function(data, formula){
