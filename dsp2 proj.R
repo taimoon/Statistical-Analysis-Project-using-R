@@ -19,6 +19,7 @@ plot(cereals_df$Year, cereals_df$Fertilizer.consumption, type="l")
 plot(cereals_df$Year, cereals_df$Annual.CO2.emissions, type="l")
 plot(cereals_df$Year, cereals_df$Mean.Temperature, type="l")
 plot(cereals_df$Year, cereals_df$Temperature.Difference, type="l")
+plot(cereals_df$Year, cereals_df$Humidity, type="l")
 
 
 cereals_df = cereals_df[,4:ncol(cereals_df)]
