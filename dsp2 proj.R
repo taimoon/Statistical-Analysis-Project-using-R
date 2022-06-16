@@ -27,13 +27,16 @@ cereals_df
 
 library(lmtest)
 test_graph = function(data, formula){
-  par(mfrow=c(1,2))
+  par(mfrow=c(1,3))
   lm_obj = lm(formula, data)
   plot(fitted(lm_obj), resid(lm_obj)) # resid plt for const variance
   abline(h=0)
   
   qqnorm(resid(lm_obj)) # normality plt of resid
   qqline(resid(lm_obj))
+  
+  # independence test
+  dwtest(lm_obj)
   
   
   print(bptest(formula, data = data)) # const variance test
