@@ -36,7 +36,7 @@ test_graph = function(data, formula){
   qqline(resid(lm_obj))
   
   # independence test
-  dwtest(lm_obj)
+  print(dwtest(lm_obj))
   
   
   print(bptest(formula, data = data)) # const variance test
