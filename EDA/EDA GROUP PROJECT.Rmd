@@ -1,0 +1,129 @@
+---
+title: "EDA GROUP PROJECT"
+author: "TENG MAN"
+date: "2023-01-14"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+data = read.csv('eda_data.csv')
+load = data$load
+cr = data$cr
+blend = data$blend
+y = data$BSFC
+data = data.frame(load,cr,blend,y)
+data
+```
+
+To investigate the effect, the full interaction model is considered and written as follow:
+
+$$
+x_{ijkl} = \mu + \alpha_i + \beta_j + \gamma_k + {(\alpha\beta)}_{ij} + {(\beta\gamma)}_{jk} + {(\alpha\gamma)}_{ik} + {(\alpha\beta\gamma)}_{ijk} + \varepsilon_{ijkl}
+$$
+
+where
+
+$l = 1$
+
+$x_{ijkl}$ - BSFC values
+
+$\mu$ - overall mean
+
+$\alpha_i$ - the effect of the $i^{th}$ level of factor A (i.e.: load = {25,50,75,100}) for $i = 1,2,3,4$
+
+$\beta_j$ - the effect of the $j^{th}$ level of factor B (i.e.: compress ratio = {16.5,17.0,17.5,18.0}) for $j = 1,2,3,4$
+
+$\gamma_k$ - the effect of the $k^{th}$ level of factor C (i.e.: blend = {20,30,40,100}) for $k = 1,2,3,4$
+
+${(\alpha\beta)}_{ij}$ - the interaction effect of the $i^{th}$ level of factor A and $j^{th}$ level of factor B
+
+${(\beta\gamma)}_{jk}$ - the interaction effect of the $j\^{th}$ level of factor B and $k^{th}$ level of factor C
+
+${(\alpha\gamma)}_{ik}$ - the interaction effect of the $i^{th}$ level of factor A and $k^{th}$ level of factor C
+
+${(\alpha\beta\gamma)}_{ijk}$ - the interaction effect of the $i^{th}$ level of factor A, $j^{th}$ level of factor B and $k^{th}$ level of factor C
+
+$\varepsilon_{ijkl}$ - random error
+
+# Statistical Analysis
+
+```{r}
+res = lm(y ~ load*cr*blend, data)
+summary(res)
+```
+
+```{r}
+anova(res)
+```
+
+# Normal Plot
+
+```{r}
+effects <- abs(res$effects[-1])
+qq <- qqnorm(effects) 
+text(qq$x, qq$y, labels = names(effects))
+```
+
+# Main Effect Plot
+
+```{r}
+data
+```
+
+```{r}
+library(gplots) # first download and install ‘gplots’ package, then activate it with a library command
+plotmeans(y ~ load, data = data, xlab="load",ylab="BSFC", main="Main effect Plot",barcol="blue")
+plotmeans(y ~ cr, data = data,xlab="compress ratio",ylab="BSFC", main="Main effect Plot",barcol="blue")
+plotmeans(y ~ blend, data = data, xlab="blend",ylab="BSFC", main="Main effect Plot",barcol="blue")
+```
+
+# Interaction Effect Plot
+
+```{r}
+interaction.plot(x.factor = data$load, #x-axis variable
+                 trace.factor = data$blend, #variable for lines
+                 response = data$y, #y-axis variable
+                 fun = median, #metric to plot
+                 ylab = "BSFC",
+                 xlab = "Load",
+                 col = c("pink", "blue", 'red',  'black'),
+                 lty = 1, #line type
+                 lwd = 2, #line width
+                 trace.label = "blend")
+```
+
+```{r}
+interaction.plot(x.factor = data$load, #x-axis variable
+                 trace.factor = data$cr, #variable for lines
+                 response = data$y, #y-axis variable
+                 fun = median, #metric to plot
+                 ylab = "BSFC",
+                 xlab = "Load",
+                 col = c("pink", "blue", 'red',  'black'),
+                 lty = 1, #line type
+                 lwd = 2, #line width
+                 trace.label = "blend")
+```
+
+```{r}
+interaction.plot(x.factor = data$cr, #x-axis variable
+                 trace.factor = data$blend, #variable for lines
+                 response = data$y, #y-axis variable
+                 fun = median, #metric to plot
+                 ylab = "BSFC",
+                 xlab = "cr",
+                 col = c("pink", "blue", 'red',  'black'),
+                 lty = 1, #line type
+                 lwd = 2, #line width
+                 trace.label = "blend")
+```
+
+# APPENDIX - Model Adequacy Check
+
+```{r}
+plot(res)
+```

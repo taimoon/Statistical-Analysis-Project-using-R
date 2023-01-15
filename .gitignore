@@ -1,5 +1,5 @@
 
-.RData
-.Rhistory
-.pdf
-.zip
+*.RData
+*.Rhistory
+*.pdf
+*.zip
