@@ -27,7 +27,7 @@ cereals_df
 
 library(lmtest)
 test_graph = function(data, formula){
-  par(mfrow=c(1,3))
+  par(mfrow=c(1,2))
   lm_obj = lm(formula, data)
   plot(fitted(lm_obj), resid(lm_obj)) # resid plt for const variance
   abline(h=0)
