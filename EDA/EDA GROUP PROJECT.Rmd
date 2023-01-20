@@ -1,8 +1,7 @@
 ---
-title: "EDA GROUP PROJECT"
-author: "TENG MAN"
-date: "2023-01-14"
-output: html_document
+title: "EDA REPORT"
+author: "LEONG TENG MAN,TAN WEI QING,SOON KIEN YUAN,NG JIE HAO"
+output: html_notebook
 ---
 
 ```{r setup, include=FALSE}
@@ -25,9 +24,7 @@ $$
 x_{ijkl} = \mu + \alpha_i + \beta_j + \gamma_k + {(\alpha\beta)}_{ij} + {(\beta\gamma)}_{jk} + {(\alpha\gamma)}_{ik} + {(\alpha\beta\gamma)}_{ijk} + \varepsilon_{ijkl}
 $$
 
-where
-
-$l = 1$
+where $l = 1$
 
 $x_{ijkl}$ - BSFC values
 
@@ -41,7 +38,7 @@ $\gamma_k$ - the effect of the $k^{th}$ level of factor C (i.e.: blend = {20,30,
 
 ${(\alpha\beta)}_{ij}$ - the interaction effect of the $i^{th}$ level of factor A and $j^{th}$ level of factor B
 
-${(\beta\gamma)}_{jk}$ - the interaction effect of the $j\^{th}$ level of factor B and $k^{th}$ level of factor C
+${(\beta\gamma)}_{jk}$ - the interaction effect of the $j^{th}$ level of factor B and $k^{th}$ level of factor C
 
 ${(\alpha\gamma)}_{ik}$ - the interaction effect of the $i^{th}$ level of factor A and $k^{th}$ level of factor C
 
@@ -60,6 +57,55 @@ summary(res)
 anova(res)
 ```
 
+Factor A (Load):\
+$H_{0}$:There is no effect of factor A\
+$H_{1}$:There is an effect of factor A\
+$p-value = 0.0000$\
+Since ($p-value = 0.0000$) $<$ ($\alpha = 0.05$), reject $H_{0}$.\
+At $\alpha = 0.05$, $\alpha_{i} \not= 0$ for at least one $i$. There is significant effect of factor A which is load to the BSFC.\
+
+Factor B (cr):\
+$H_{0}$:There is no effect of factor B\
+$H_{1}$:There is an effect of factor B\
+$p-value = 0.1520$\
+Since ($p-value = 0.1520$) $>$ ($\alpha = 0.05$),do not reject $H_{0}$.\
+At $\alpha = 0.05$, $\beta_{j} = 0$ for all $j$. There is no significant effect of factor B which is cr to the BSFC.\
+
+Factor C (blend):\
+$H_{0}$:There is no effect of factor C\
+$H_{1}$:There is an effect of factor C\
+$p-value = 0.0000$\
+Since ($p-value = 0000$) $<$ ($\alpha = 0.05$),reject $H_{0}$.\
+At $\alpha = 0.05$, $\gamma_{k} = 0$ for at least one $k$. There is significant effect of factor C which is blend to the BSFC.\
+
+Factor AB:\
+$H_{0}$: $\alpha\beta_{ij} = 0$\
+$H_{1}$: $\alpha\beta_{ij} \not= 0$\
+$p-value = 0.5607$\
+Since ($p-value = 0.5607$) $>$ ($\alpha = 0.05$), do not reject $H_{0}$.\
+At $\alpha = 0.05$, $\alpha\beta_{ij} = 0$ for all $i$,$j$. There is no interaction effect of factor A and B to the BSFC.\
+
+Factor AC:\
+$H_{0}$: $\alpha\gamma_{ik} = 0$\
+$H_{1}$: $\alpha\gamma_{ik} \not= 0$\
+$p-value = 0.0000$\
+Since ($p-value = 0.0000$) $<$ ($\alpha = 0.05$), reject $H_{0}$.\
+At $\alpha = 0.05$, $\alpha\gamma_{ik} \not= 0$ for at least one $i$,$k$. There is interaction effect of factor A and C to the BSFC.\
+
+Factor BC:\
+$H_{0}$: $\beta\gamma_{jk} = 0$\
+$H_{1}$: $\beta\gamma_{jk} \not= 0$\
+$p-value = 0.7084$\
+Since ($p-value = 0.7084$) $>$ ($\alpha = 0.05$), do not reject $H_{0}$.\
+At $\alpha = 0.05$, $\beta\gamma_{jk} = 0$ for all $j$,$k$. There is no interaction effect of factor B and C to the BSFC.\
+
+Factor ABC:\
+$H_{0}$: $\alpha\beta\gamma_{ijk} = 0$\
+$H_{1}$: $\alpha\beta\gamma_{ijk} \not= 0$\
+$p-value = 0.4570$\
+Since ($p-value = 0.4570$) $>$ ($\alpha = 0.05$), do not reject $H_{0}$.\
+At $\alpha = 0.05$, $\alpha\beta\gamma_{ijk} = 0$ for all $i$,$j$,$k$. There is no interaction effect of factor A and B and C to the BSFC.\
+
 # Normal Plot
 
 ```{r}
@@ -68,7 +114,9 @@ qq <- qqnorm(effects)
 text(qq$x, qq$y, labels = names(effects))
 ```
 
-# Main Effect Plot
+From the normal QQ plot , it is shown that factor A (load), factor C (blend), factor AC (load:blend) are the significant factors since they are not approximately on a straight line.\
+Factor B, factor AB , factor BC, factor ABC are not significant factors since they are approximately on a straight line.\
+It also shown that factor A (load) is the most significant factors since it is the farthest away from the straight line.
 
 ```{r}
 data
@@ -80,6 +128,12 @@ plotmeans(y ~ load, data = data, xlab="load",ylab="BSFC", main="Main effect Plot
 plotmeans(y ~ cr, data = data,xlab="compress ratio",ylab="BSFC", main="Main effect Plot",barcol="blue")
 plotmeans(y ~ blend, data = data, xlab="blend",ylab="BSFC", main="Main effect Plot",barcol="blue")
 ```
+
+The main effect plot shows that there are significant effect of main factor A (load) and factor C (blend).\
+For factor A, the main effects are negative and we would run this effect at low level to maximize the BSFC.\
+For factor C, the main effects are positive and we would run this effect at high level to maximize the BSFC.\
+Main effect plot of compress ratio shows no significant effect.\
+Main effects do not have much meaning when they are involved in significant interactions.
 
 # Interaction Effect Plot
 
@@ -96,6 +150,10 @@ interaction.plot(x.factor = data$load, #x-axis variable
                  trace.label = "blend")
 ```
 
+The interaction plot of AC shows there is interaction effect as the line is cross and not parallel to each other.\
+From the AC interaction shows that when the load (A) effect is at low level blend is smaller compared to the higher level blend.\
+From the AC interaction that the best results obtained with low load and high blend to maximize the BSFC.\
+
 ```{r}
 interaction.plot(x.factor = data$load, #x-axis variable
                  trace.factor = data$cr, #variable for lines
@@ -108,6 +166,8 @@ interaction.plot(x.factor = data$load, #x-axis variable
                  lwd = 2, #line width
                  trace.label = "blend")
 ```
+
+The interaction plot of AB shows there is no interaction effect as the line is not cross and parallel to each other.
 
 ```{r}
 interaction.plot(x.factor = data$cr, #x-axis variable
@@ -122,7 +182,9 @@ interaction.plot(x.factor = data$cr, #x-axis variable
                  trace.label = "blend")
 ```
 
-# APPENDIX - Model Adequacy Check
+The interaction plot of BC shows there is no interaction effect as the line is not cross and parallel to each other.
+
+Conclusion: The significant factors are load (A) and blend (C). The best BSFC would appeared to be obtained when load (A) is at low level and blend (C) is at high level.
 
 ```{r}
 plot(res)
