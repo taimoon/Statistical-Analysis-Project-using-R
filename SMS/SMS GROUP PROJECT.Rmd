@@ -9,7 +9,8 @@ output: html_document
 
 https://www.kaggle.com/datasets/loveall/appliances-energy-prediction
 
-# Content
+# Data Description
+
 The data set is at 10 min for about 4.5 months. The house temperature and humidity conditions were monitored with a ZigBee wireless sensor network. Each wireless node transmitted the temperature and humidity conditions around 3.3 min. Then, the wireless data was averaged for 10 minutes periods. The energy data was logged every 10 minutes with m-bus energy meters. Weather from the nearest airport weather station (Chievres Airport, Belgium) was downloaded from a public data set from Reliable Prognosis (rp5.ru), and merged together with the experimental data sets using the date and time column. Two random variables have been included in the data set for testing the regression models and to filter out non predictive attributes (parameters).
 
 
@@ -40,7 +41,7 @@ library(car)
 vif(lm(energy.use.in.Wh ~ ., data))
 ```
 
-
+# Simple Aggregration of confounded group of same unit
 ```{r}
 humid = c('Humidity.in.ironing.room', 'Humidity.in.kitchen.area', 'Humidity.in.laundry.room.area', 'Humidity.in.living.room.area', 'Humidity.in.office.room', 'Humidity.in.parents.room', 'Humidity.in.teenager.room.2')
 
@@ -52,7 +53,6 @@ humid = c('Humidity.in.bathroom', 'Humidity.in.ironing.room', 'Humidity.in.kitch
 
 temp = c('Temperature.in.bathroom', 'Temperature.in.ironing.room', 'Temperature.in.kitchen.area', 'Temperature.in.laundry.room.area', 'Temperature.in.living.room.area', 'Temperature.in.office.room', 'Temperature.in.parents.room', 'Temperature.in.teenager.room.2', 'Temperature.outside.the.building..north.side.', 'T_out')
 
-length(temp)
 data$average_humdity_house = apply(data[,humid],1, mean)
 
 data$average_temperature_house = apply(data[,temp],1, mean)
@@ -98,6 +98,7 @@ idx = which(res$y == max(res$y))
 lambda = res$x[idx]
 lambda
 ```
+
 ```{r}
 xs = data$energy.use.in.Wh
 hist(1/sqrt(xs))
