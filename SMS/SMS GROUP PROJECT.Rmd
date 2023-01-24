@@ -13,6 +13,8 @@ https://www.kaggle.com/datasets/loveall/appliances-energy-prediction
 
 The data set is at 10 min for about 4.5 months. The house temperature and humidity conditions were monitored with a ZigBee wireless sensor network. Each wireless node transmitted the temperature and humidity conditions around 3.3 min. Then, the wireless data was averaged for 10 minutes periods. The energy data was logged every 10 minutes with m-bus energy meters. Weather from the nearest airport weather station (Chievres Airport, Belgium) was downloaded from a public data set from Reliable Prognosis (rp5.ru), and merged together with the experimental data sets using the date and time column. Two random variables have been included in the data set for testing the regression models and to filter out non predictive attributes (parameters).
 
+We use Python pandas to preprocess the dataset, then save it into a new file at the same directory as original dataset.
+
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
@@ -35,6 +37,7 @@ pp <- readPNG("correlation_matrix.png")
 plot.new() 
 rasterImage(pp,0,0,1,1)
 ```
+Picture above is obtained using Python `seaborn` and `pd.DataFrame.cor`.
 
 ```{r}
 library(car)
@@ -82,14 +85,14 @@ for(col in names(data)[2:ncol(data)]){
 
 # Multiple Linear Regression
 
-## First Attempt - Residual Analysis First
+## First Attempt - Residual Analysis
 ```{r}
 mlr = lm(energy.use.in.Wh ~ ., data)
 plot(mlr)
 ```
 
 
-## Box-cox transformation
+## Normalization via Box-cox transformation
 
 ```{r}
 library(MASS)
@@ -104,7 +107,7 @@ xs = data$energy.use.in.Wh
 hist(1/sqrt(xs))
 ```
 
-## Second Attempt - after cox-box transformation
+## Apply box-cox transformation
 ```{r}
 mlr = lm(1/sqrt(energy.use.in.Wh) ~ ., data)
 plot(mlr)
@@ -118,5 +121,11 @@ plot(mlr)
 ```{r}
 best_mlr = stepAIC(mlr,trace=F)
 summary(best_mlr)
+```
+
+# Multicollinearity
+
+```{r}
+vif(best_mlr)
 ```
 
