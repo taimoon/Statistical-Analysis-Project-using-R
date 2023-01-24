@@ -1,0 +1,121 @@
+---
+title: "SMS PROJECT"
+author: "TENG MAN"
+date: "2023-01-23"
+output: html_document
+---
+
+# Dataset
+
+https://www.kaggle.com/datasets/loveall/appliances-energy-prediction
+
+# Content
+The data set is at 10 min for about 4.5 months. The house temperature and humidity conditions were monitored with a ZigBee wireless sensor network. Each wireless node transmitted the temperature and humidity conditions around 3.3 min. Then, the wireless data was averaged for 10 minutes periods. The energy data was logged every 10 minutes with m-bus energy meters. Weather from the nearest airport weather station (Chievres Airport, Belgium) was downloaded from a public data set from Reliable Prognosis (rp5.ru), and merged together with the experimental data sets using the date and time column. Two random variables have been included in the data set for testing the regression models and to filter out non predictive attributes (parameters).
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+data = read.csv('KAG_energydata_detailed.csv')
+data$date = NULL
+data$X = NULL
+data
+```
+
+# Correlation Analysis and Multicollinearity
+
+We see that humidity and temperature among the rooms inside of the house are confounded (besides bathroom). Then we can take the average of these to reduce the features.
+
+```{r,fig.height=15, fig.width=15}
+library("png")
+pp <- readPNG("correlation_matrix.png")
+plot.new() 
+rasterImage(pp,0,0,1,1)
+```
+
+```{r}
+library(car)
+vif(lm(energy.use.in.Wh ~ ., data))
+```
+
+
+```{r}
+humid = c('Humidity.in.ironing.room', 'Humidity.in.kitchen.area', 'Humidity.in.laundry.room.area', 'Humidity.in.living.room.area', 'Humidity.in.office.room', 'Humidity.in.parents.room', 'Humidity.in.teenager.room.2')
+
+
+
+temp = c('Temperature.in.ironing.room', 'Temperature.in.kitchen.area', 'Temperature.in.laundry.room.area', 'Temperature.in.living.room.area', 'Temperature.in.office.room', 'Temperature.in.parents.room', 'Temperature.in.teenager.room.2')
+
+humid = c('Humidity.in.bathroom', 'Humidity.in.ironing.room', 'Humidity.in.kitchen.area', 'Humidity.in.laundry.room.area', 'Humidity.in.living.room.area', 'Humidity.in.office.room', 'Humidity.in.parents.room', 'Humidity.in.teenager.room.2', 'Humidity.outside', 'Humidity.outside.the.building..north.side.')
+
+temp = c('Temperature.in.bathroom', 'Temperature.in.ironing.room', 'Temperature.in.kitchen.area', 'Temperature.in.laundry.room.area', 'Temperature.in.living.room.area', 'Temperature.in.office.room', 'Temperature.in.parents.room', 'Temperature.in.teenager.room.2', 'Temperature.outside.the.building..north.side.', 'T_out')
+
+length(temp)
+data$average_humdity_house = apply(data[,humid],1, mean)
+
+data$average_temperature_house = apply(data[,temp],1, mean)
+data[,humid] = NULL
+data[,temp] = NULL
+```
+
+# Data distribution via Histogram
+
+```{r}
+for(col in names(data)){
+  hist(data[,col], main=col)
+}
+```
+
+# Scatter plot with Regression Line
+
+```{r}
+ys = data$energy.use.in.Wh
+# ys = 1/sqrt(ys)
+for(col in names(data)[2:ncol(data)]){
+  xs = data[,col]
+  plot(xs,ys, main=col)
+  abline(lm(ys ~ xs))
+}
+```
+
+# Multiple Linear Regression
+
+## First Attempt - Residual Analysis First
+```{r}
+mlr = lm(energy.use.in.Wh ~ ., data)
+plot(mlr)
+```
+
+
+## Box-cox transformation
+
+```{r}
+library(MASS)
+res = boxcox(mlr, plotit=F)
+idx = which(res$y == max(res$y))
+lambda = res$x[idx]
+lambda
+```
+```{r}
+xs = data$energy.use.in.Wh
+hist(1/sqrt(xs))
+```
+
+## Second Attempt - after cox-box transformation
+```{r}
+mlr = lm(1/sqrt(energy.use.in.Wh) ~ ., data)
+plot(mlr)
+```
+
+
+
+
+# Feature Selection via stepAIC
+
+```{r}
+best_mlr = stepAIC(mlr,trace=F)
+summary(best_mlr)
+```
+
