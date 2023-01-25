@@ -20,6 +20,8 @@ We use Python pandas to preprocess the dataset, then save it into a new file at 
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
+# Loading Data
+
 ```{r}
 data = read.csv('KAG_energydata_detailed.csv')
 data$date = NULL
@@ -29,7 +31,7 @@ data
 
 # Correlation Analysis and Multicollinearity
 
-We see that humidity and temperature among the rooms inside of the house are confounded (besides bathroom). Then we can take the average of these to reduce the features.
+We see that humidity and temperature among different features are heavily correlated. Then we can take the average of these to reduce the features.
 
 ```{r,fig.height=15, fig.width=15}
 library("png")
@@ -37,7 +39,7 @@ pp <- readPNG("correlation_matrix.png")
 plot.new() 
 rasterImage(pp,0,0,1,1)
 ```
-Picture above is obtained using Python `seaborn` and `pd.DataFrame.cor`.
+Picture above is obtained using Python `seaborn` and `pd.DataFrame.cor`. The calculation of VIF below shows that temperature and humidty themselves are highly correlated.
 
 ```{r}
 library(car)
@@ -46,24 +48,20 @@ vif(lm(energy.use.in.Wh ~ ., data))
 
 # Simple Aggregration of confounded group of same unit
 ```{r}
-humid = c('Humidity.in.ironing.room', 'Humidity.in.kitchen.area', 'Humidity.in.laundry.room.area', 'Humidity.in.living.room.area', 'Humidity.in.office.room', 'Humidity.in.parents.room', 'Humidity.in.teenager.room.2')
-
-
-
-temp = c('Temperature.in.ironing.room', 'Temperature.in.kitchen.area', 'Temperature.in.laundry.room.area', 'Temperature.in.living.room.area', 'Temperature.in.office.room', 'Temperature.in.parents.room', 'Temperature.in.teenager.room.2')
-
 humid = c('Humidity.in.bathroom', 'Humidity.in.ironing.room', 'Humidity.in.kitchen.area', 'Humidity.in.laundry.room.area', 'Humidity.in.living.room.area', 'Humidity.in.office.room', 'Humidity.in.parents.room', 'Humidity.in.teenager.room.2', 'Humidity.outside', 'Humidity.outside.the.building..north.side.')
 
 temp = c('Temperature.in.bathroom', 'Temperature.in.ironing.room', 'Temperature.in.kitchen.area', 'Temperature.in.laundry.room.area', 'Temperature.in.living.room.area', 'Temperature.in.office.room', 'Temperature.in.parents.room', 'Temperature.in.teenager.room.2', 'Temperature.outside.the.building..north.side.', 'T_out')
 
-data$average_humdity_house = apply(data[,humid],1, mean)
+data$average_humdity = apply(data[,humid],1, mean)
 
-data$average_temperature_house = apply(data[,temp],1, mean)
+data$average_temperature = apply(data[,temp],1, mean)
 data[,humid] = NULL
 data[,temp] = NULL
 ```
 
-# Data distribution via Histogram
+# EDA - Data distribution via Histogram
+
+We see that temperature, pressure, dewpoint and humidity are roughly normally distributed whereas windspeed don't.
 
 ```{r}
 for(col in names(data)){
@@ -71,11 +69,10 @@ for(col in names(data)){
 }
 ```
 
-# Scatter plot with Regression Line
+# EDA - Scatter plot with Regression Line
 
 ```{r}
 ys = data$energy.use.in.Wh
-# ys = 1/sqrt(ys)
 for(col in names(data)[2:ncol(data)]){
   xs = data[,col]
   plot(xs,ys, main=col)
@@ -86,6 +83,8 @@ for(col in names(data)[2:ncol(data)]){
 # Multiple Linear Regression
 
 ## First Attempt - Residual Analysis
+
+We started with the simplest multiple linear regression and follow by residual analysis. We see that the residual points deviate out from the line uniformly which implies the problem of variance and also the residuals are not normally distributed.
 ```{r}
 mlr = lm(energy.use.in.Wh ~ ., data)
 plot(mlr)
@@ -94,38 +93,52 @@ plot(mlr)
 
 ## Normalization via Box-cox transformation
 
+We carry out box-cox transformation to determine the best transformation that will might fix the un-normality of residuals.  The best lambda value we get is near to -0.5 which corresponds to inverse square root transformation.
 ```{r}
 library(MASS)
-res = boxcox(mlr, plotit=F)
+res = boxcox(mlr, plotit=T)
 idx = which(res$y == max(res$y))
 lambda = res$x[idx]
 lambda
 ```
 
+As previously, we apply inverse square root to normalize the target value. The histogram is now near to a bell-curve shape (i.e.: normalized value)
 ```{r}
 xs = data$energy.use.in.Wh
 hist(1/sqrt(xs))
 ```
 
 ## Apply box-cox transformation
+
+We fit the model that have beem transformed. The qq-plot of residuals scatter around the line but closer than in previous model. The regularity and  funnel shape in residual vs fitted plot imply that decreasing variance as original target value getting bigger (i.e.: smaller transformed value).
+
 ```{r}
 mlr = lm(1/sqrt(energy.use.in.Wh) ~ ., data)
 plot(mlr)
 ```
 
-
-
-
 # Feature Selection via stepAIC
+
+In bias to simpler model, we wish our model is parsimony, then we want to select the best feature subset while maintaining model performance (i.e.: by AIC criterion). Since brute force takes a lot time, we use step-wise algorithm to get the sub optimal feature subset. In short, the function `stepAIC` will choose the best subset. 
+
+Based on the summary and anova result, we see all features are significant in predicting the amount of energy consumed.
 
 ```{r}
 best_mlr = stepAIC(mlr,trace=F)
 summary(best_mlr)
+anova(best_mlr)
 ```
 
 # Multicollinearity
+
+We calculate the variance inflation factor (VIF) to investigate the multicollinearity. If the VIF value is greater than 5, it is an alarming sign that the variable is highly correlated with other variable. The result doesn't surprise us that dewpoint, humidity and temperature are closely correlated. We didn't aggregate them in earlier section because the aggregated value are of the same unit whereas humidity, viewpoint and temperature are not of same unit, then we decided kept them as they are.
 
 ```{r}
 vif(best_mlr)
 ```
 
+# Best Multiple Linear Regression Model
+This is the best model as we have done via aggregating confounded variable, stabilize the variance via box-cox transformation and feature selection.
+$$
+    \frac{1}{\sqrt{y_\text{energy}}} = x_\text{light fixtures} + x_\text{pressure} +  x_\text{visibility} + x_\text{dewpoint} + x_\text{humidity} +  x_\text{temperature}
+$$
