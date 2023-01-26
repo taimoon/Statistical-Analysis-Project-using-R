@@ -111,7 +111,7 @@ hist(1/sqrt(xs))
 
 ## Apply box-cox transformation
 
-We fit the model that have been transformed. The qq-plot of residuals scatter around the line but closer than in previous model. The regularity and  funnel shape in residual vs fitted plot imply that decreasing variance as original target value getting bigger (i.e.: smaller transformed value).
+We fit the model that have been transformed. The qq-plot of residuals scatter around the line but closer than in previous model. The regularity and  funnel shape in residual vs fitted plot imply that decreasing variance as original target value getting bigger (i.e.: smaller transformed value). From residuals vs leverage plot, there are only few leverage points (i.e.: labelled points).
 
 ```{r}
 mlr = lm(1/sqrt(energy.use.in.Wh) ~ ., data)
@@ -148,7 +148,7 @@ $$
 
 # Alternative and Limitation
 
-We could use decision tree which is not the main focus of statistical modelling but it worth a try.
+We could use decision tree which is not the main focus of statistical modelling for our project but it should worth a try. This is because the residual plots are not ideal where constant variance and autocorrelation are not met. Since the data is indeed temporal and measured continuously, it is susceptible to autocorrelation but the test is not carry here.
 
 
 # Business Solution
