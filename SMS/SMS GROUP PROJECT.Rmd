@@ -4,6 +4,9 @@ author: "TENG MAN"
 date: "2023-01-23"
 output: html_document
 ---
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
 
 # Dataset
 
@@ -11,14 +14,10 @@ https://www.kaggle.com/datasets/loveall/appliances-energy-prediction
 
 # Data Description
 
-The data set is at 10 min for about 4.5 months. The house temperature and humidity conditions were monitored with a ZigBee wireless sensor network. Each wireless node transmitted the temperature and humidity conditions around 3.3 min. Then, the wireless data was averaged for 10 minutes periods. The energy data was logged every 10 minutes with m-bus energy meters. Weather from the nearest airport weather station (Chievres Airport, Belgium) was downloaded from a public data set from Reliable Prognosis (rp5.ru), and merged together with the experimental data sets using the date and time column. Two random variables have been included in the data set for testing the regression models and to filter out non predictive attributes (parameters).
+The data set is at 10 min for about 4.5 months. The house temperature and humidity conditions were monitored with a ZigBee wireless sensor network. Each wireless node transmitted the temperature and humidity conditions around 3.3 min. Then, the wireless data was averaged for 10 minutes periods. The energy data was logged every 10 minutes with m-bus energy meters. Weather from the nearest airport weather station (Chievres Airport, Belgium) was downloaded from a public data set from Reliable Prognosis (rp5.ru), and merged together with the experimental data sets using the date and time column. Our task here is to model the energy used by appliances among other predictor variables.
 
 We use Python pandas to preprocess the dataset, then save it into a new file at the same directory as original dataset.
 
-
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
-```
 
 # Loading Data
 
@@ -29,7 +28,7 @@ data$X = NULL
 data
 ```
 
-# Correlation Analysis and Multicollinearity
+# Correlation Analysis
 
 We see that humidity and temperature among different features are heavily correlated. Then we can take the average of these to reduce the features.
 
@@ -47,6 +46,7 @@ vif(lm(energy.use.in.Wh ~ ., data))
 ```
 
 # Simple Aggregration of confounded group of same unit
+As we prefer parsimony model and the model is multiple linear, we aggregate the confounded variables but of same unit into one variable. In this case, we take the mean.
 ```{r}
 humid = c('Humidity.in.bathroom', 'Humidity.in.ironing.room', 'Humidity.in.kitchen.area', 'Humidity.in.laundry.room.area', 'Humidity.in.living.room.area', 'Humidity.in.office.room', 'Humidity.in.parents.room', 'Humidity.in.teenager.room.2', 'Humidity.outside', 'Humidity.outside.the.building..north.side.')
 
@@ -61,7 +61,7 @@ data[,temp] = NULL
 
 # EDA - Data distribution via Histogram
 
-We see that temperature, pressure, dewpoint and humidity are roughly normally distributed whereas windspeed don't.
+We see that temperature, pressure, dewpoint and humidity are roughly normally distributed whereas windspeed doesn't. Ideally, the data should be normally distributed, but some deviate is not a big problem.
 
 ```{r}
 for(col in names(data)){
@@ -71,6 +71,7 @@ for(col in names(data)){
 
 # EDA - Scatter plot with Regression Line
 
+The linear relation is not obvious among the predictor variables with the target variable except the energy use of light fixtures.
 ```{r}
 ys = data$energy.use.in.Wh
 for(col in names(data)[2:ncol(data)]){
@@ -110,7 +111,7 @@ hist(1/sqrt(xs))
 
 ## Apply box-cox transformation
 
-We fit the model that have beem transformed. The qq-plot of residuals scatter around the line but closer than in previous model. The regularity and  funnel shape in residual vs fitted plot imply that decreasing variance as original target value getting bigger (i.e.: smaller transformed value).
+We fit the model that have been transformed. The qq-plot of residuals scatter around the line but closer than in previous model. The regularity and  funnel shape in residual vs fitted plot imply that decreasing variance as original target value getting bigger (i.e.: smaller transformed value).
 
 ```{r}
 mlr = lm(1/sqrt(energy.use.in.Wh) ~ ., data)
@@ -128,7 +129,6 @@ best_mlr = stepAIC(mlr,trace=F)
 summary(best_mlr)
 anova(best_mlr)
 ```
-
 # Multicollinearity
 
 We calculate the variance inflation factor (VIF) to investigate the multicollinearity. If the VIF value is greater than 5, it is an alarming sign that the variable is highly correlated with other variable. The result doesn't surprise us that dewpoint, humidity and temperature are closely correlated. We didn't aggregate them in earlier section because the aggregated value are of the same unit whereas humidity, viewpoint and temperature are not of same unit, then we decided kept them as they are.
@@ -137,8 +137,29 @@ We calculate the variance inflation factor (VIF) to investigate the multicolline
 vif(best_mlr)
 ```
 
+
 # Best Multiple Linear Regression Model
+
 This is the best model as we have done via aggregating confounded variable, stabilize the variance via box-cox transformation and feature selection.
+
 $$
     \frac{1}{\sqrt{y_\text{energy}}} = x_\text{light fixtures} + x_\text{pressure} +  x_\text{visibility} + x_\text{dewpoint} + x_\text{humidity} +  x_\text{temperature}
 $$
+
+# Alternative and Limitation
+
+We could use decision tree which is not the main focus of statistical modelling but it worth a try.
+
+
+# Business Solution
+
+Considering the decarbonization movement is a trend, we may corporate model into an app to fulfill the need of measuring appliances' energy efficiency. The app will receive sensor data from surrounding smart devices and online to estimate the energy used. Suppose the smart devices themselves can measure the energy used, then if there is a deviate between model prediction and smart devices, then it will warn an anomaly found. This is an example of how it can be applied in industry. 
+
+```{r, fig.height=8, fig.width=4}
+library("png")
+pp <- readPNG("dte_app.png")
+plot.new() 
+rasterImage(pp,0,0,1,1)
+```
+
+
