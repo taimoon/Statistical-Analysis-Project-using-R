@@ -70,7 +70,7 @@ We use Python pandas to preprocess the dataset, then save it into a new file at 
 data = read.csv('KAG_energydata_detailed.csv')
 data$date = NULL
 data$X = NULL
-data
+head(data)
 ```
 
 # Correlation Analysis
